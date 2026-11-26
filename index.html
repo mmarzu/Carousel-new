@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IG Carousel Studio — @kakmuh</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts dengan crossorigin="anonymous" agar html-to-image dapat membaca CSS font-face tanpa CORS error -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,500;1,600&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+    rel="stylesheet"
+    crossorigin="anonymous"
+  />
+
+  <!-- Library Ekspor Gambar & ZIP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <style>
+    /* Konfigurasi Dasar Studio */
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar Minimalis */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Tekstur Kertas Halus (Berbasis CSS murni agar tajam 100% saat ekspor 1080x1440) */
+    .paper-texture-none {
+      background-image: none;
+    }
+    .paper-texture-dots {
+      background-image: radial-gradient(rgba(15, 23, 42, 0.11) 1.5px, transparent 1.5px);
+      background-size: 32px 32px;
+    }
+    .paper-texture-grid {
+      background-image:
+        linear-gradient(to right, rgba(15, 23, 42, 0.055) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.055) 1px, transparent 1px);
+      background-size: 54px 54px;
+    }
+    .paper-texture-lines {
+      background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.065) 1.5px, transparent 1.5px);
+      background-size: 100% 56px;
+    }
+
+    /* Pasangan Tipografi Kanvas */
+    .font-pair-modern .slide-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .font-pair-modern .slide-body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .font-pair-editorial .slide-display {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    .font-pair-editorial .slide-body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .font-pair-geometric .slide-display {
+      font-family: 'Outfit', sans-serif;
+    }
+    .font-pair-geometric .slide-body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Kanvas Asli 1080x1440 px */
+    .carousel-artboard {
+      width: 1080px;
+      height: 1440px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Custom Range Slider */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #e2e8f0;
+      height: 6px;
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0f172a;
+      cursor: pointer;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0f172a;
+      cursor: pointer;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-100 text-slate-900">
+
+  <!-- ==================== TOP STUDIO NAVBAR ==================== -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 px-3 sm:px-6 py-2.5">
+    <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-2">
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm shrink-0">
+          <!-- Crisp 3:4 Artboard Icon -->
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="3" width="14" height="18" rx="2.5" />
+            <line x1="9" y1="8" x2="15" y2="8" />
+            <line x1="9" y1="12" x2="13" y2="12" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-bold tracking-tight text-slate-900 leading-none">
+              IG Carousel Studio
+            </h1>
+            <span id="headerHandleBadge" class="text-xs font-medium px-2 py-0.5 rounded-full border border-slate-200 bg-slate-50 text-slate-700">
+              @kakmuh
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 hidden sm:block mt-0.5">
+            Rasio 3:4 (1080×1440 px) • Estetika Putih Bersih
+          </p>
+        </div>
+      </div>
+
+      <!-- Canvas Guide Toggles + Export Buttons -->
+      <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
+        <!-- Toggle Safe Zone IG -->
+        <button
+          id="btnToggleSafeZone"
+          type="button"
+          onclick="toggleSafeZone()"
+          title="Tampilkan garis panduan margin aman Instagram & crop feed 1:1"
+          class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium border transition-all bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+            <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+            <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+            <rect x="7" y="7" width="10" height="10" rx="1" stroke-dasharray="2 2" />
+          </svg>
+          <span>Safe Zone IG</span>
+        </button>
+
+        <!-- Toggle Mode Seamless -->
+        <button
+          id="btnToggleSeamless"
+          type="button"
+          onclick="toggleSeamless()"
+          title="Tampilkan garis penghubung horizontal tipis antar-slide"
+          class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium border transition-all bg-slate-900 border-slate-900 text-white"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <circle cx="7" cy="12" r="2" fill="currentColor" />
+            <circle cx="17" cy="12" r="2" fill="currentColor" />
+          </svg>
+          <span>Mode Seamless</span>
+        </button>
+
+        <div class="h-5 w-px bg-slate-200 mx-0.5 hidden md:block"></div>
+
+        <!-- Save Active Slide PNG -->
+        <button
+          type="button"
+          onclick="exportSinglePng()"
+          class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span>Save PNG</span>
+        </button>
+
+        <!-- Save All PNG sequentially -->
+        <button
+          type="button"
+          onclick="exportAllPngSequential()"
+          class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="8" y="2" width="13" height="16" rx="2" />
+            <path d="M4 6v14a2 2 0 0 0 2 2h11" />
+          </svg>
+          <span class="hidden sm:inline">Save All PNG</span>
+          <span class="sm:hidden">All PNG</span>
+        </button>
+
+        <!-- Save All ZIP -->
+        <button
+          type="button"
+          onclick="exportAllZip()"
+          class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 8v13H3V8" />
+            <path d="M1 3h22v5H1z" />
+            <path d="M10 12h4" />
+          </svg>
+          <span>Save All ZIP</span>
+        </button>
+
+        <!-- Caption & Posting ke IG -->
+        <button
+          type="button"
+          onclick="openCaptionModal()"
+          class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 shadow-sm transition-all"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+          </svg>
+          <span>Posting ke IG</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN WORKSPACE ==================== -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto flex flex-col lg:flex-row lg:h-[calc(100vh-57px)] lg:overflow-hidden">
+
+    <!-- 1. SLIDE DECK MANAGER (Left Sidebar on Desktop, Horizontal Strip on Mobile) -->
+    <aside class="w-full lg:w-64 xl:w-72 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col shrink-0">
+      <div class="px-3.5 py-2.5 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Daftar Slide</span>
+          <span id="slideCountBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+            5 / 20
+          </span>
+        </div>
+        <button
+          type="button"
+          onclick="openAddSlideModal()"
+          class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-all"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span>Tambah</span>
+        </button>
+      </div>
+
+      <!-- Slide List Container -->
+      <div
+        id="slideListContainer"
+        class="p-2.5 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto lg:flex-1"
+      >
+        <!-- Diisi secara dinamis oleh JS -->
+      </div>
+
+      <!-- Quick Slide Reorder / Duplicate / Delete Bar -->
+      <div class="px-3 py-2 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-1">
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            onclick="moveActiveSlide(-1)"
+            title="Geser Slide Sebelumnya"
+            class="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+            id="btnMovePrev"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onclick="moveActiveSlide(1)"
+            title="Geser Slide Berikutnya"
+            class="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+            id="btnMoveNext"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            onclick="duplicateActiveSlide()"
+            title="Duplikat Slide Aktif"
+            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            <span>Duplikat</span>
+          </button>
+          <button
+            type="button"
+            onclick="requestDeleteActiveSlide()"
+            title="Hapus Slide Aktif"
+            class="p-2 rounded-lg border border-slate-200 bg-white text-rose-600 hover:bg-rose-50"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 2. CENTER RESPONSIVE 3:4 CANVAS PREVIEW -->
+    <section class="flex-1 flex flex-col bg-slate-100/90 relative min-h-[460px] sm:min-h-[540px] lg:min-h-0 overflow-hidden">
+      <!-- Viewport Area dengan ResizeObserver -->
+      <div
+        id="previewViewport"
+        class="flex-1 w-full h-full flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-hidden relative"
+      >
+        <!-- Scaled Artboard Wrapper -->
+        <div
+          id="scaledCanvasWrapper"
+          class="relative shadow-[0_20px_50px_rgba(15,23,42,0.12)] ring-1 ring-slate-900/10 rounded-[2px] bg-white transition-shadow"
+          style="width: 360px; height: 480px;"
+        >
+          <!-- Kanvas 1080x1440 px yang diskalakan dengan CSS transform -->
+          <div
+            id="previewCanvasMount"
+            style="width: 1080px; height: 1440px; transform-origin: top left; transform: scale(0.3333);"
+          >
+            <!-- Render Slide Aktif -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Preview Navigation Bar -->
+      <div class="px-4 py-2.5 bg-white/90 backdrop-blur border-t border-slate-200 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <span class="font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-medium">1080 × 1440 px</span>
+          <span id="zoomIndicator" class="hidden sm:inline text-slate-400">Skala: 38%</span>
+        </div>
+
+        <!-- Manual Slide Stepper -->
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            onclick="selectSlide(state.activeIndex - 1)"
+            id="btnPrevCanvas"
+            class="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-all"
+            aria-label="Slide Sebelumnya"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+
+          <span id="canvasPageIndicator" class="text-xs font-bold tracking-wide text-slate-800 min-w-[72px] text-center">
+            Slide 01 / 05
+          </span>
+
+          <button
+            type="button"
+            onclick="selectSlide(state.activeIndex + 1)"
+            id="btnNextCanvas"
+            class="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-all"
+            aria-label="Slide Berikutnya"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="hidden md:flex items-center gap-1.5 text-[11px] text-slate-400">
+          <kbd class="px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 text-slate-600 font-sans">←</kbd>
+          <kbd class="px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 text-slate-600 font-sans">→</kbd>
+          <span>Navigasi</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. RIGHT STUDIO INSPECTOR PANEL -->
+    <aside class="w-full lg:w-[390px] xl:w-[420px] bg-white border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col shrink-0">
+      <!-- Inspector Tabs -->
+      <div class="grid grid-cols-3 border-b border-slate-200 bg-slate-50/60 p-1.5 gap-1">
+        <button
+          type="button"
+          id="tabBtnKonten"
+          onclick="switchInspectorTab('konten')"
+          class="py-2 px-2 rounded-xl text-xs font-semibold transition-all bg-white text-slate-900 shadow-sm border border-slate-200/80"
+        >
+          Konten & Layout
+        </button>
+        <button
+          type="button"
+          id="tabBtnGaya"
+          onclick="switchInspectorTab('gaya')"
+          class="py-2 px-2 rounded-xl text-xs font-medium transition-all text-slate-600 hover:text-slate-900"
+        >
+          Gaya & Warna
+        </button>
+        <button
+          type="button"
+          id="tabBtnEkspor"
+          onclick="switchInspectorTab('ekspor')"
+          class="py-2 px-2 rounded-xl text-xs font-medium transition-all text-slate-600 hover:text-slate-900"
+        >
+          Ekspor & IG
+        </button>
+      </div>
+
+      <!-- Inspector Body -->
+      <div class="p-4 sm:p-5 overflow-y-auto flex-1 space-y-5">
+
+        <!-- TAB 1: KONTEN & TATA LETAK -->
+        <div id="tabPanelKonten" class="space-y-4">
+          <!-- Layout Selector -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              Template Tata Letak Slide
+            </label>
+            <div class="grid grid-cols-5 gap-1.5" id="layoutSelectorGrid">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+
+          <!-- Typography Bold Helper Notice -->
+          <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 flex items-center justify-between gap-2">
+            <span class="text-[11px] text-slate-600">
+              Gunakan <code class="font-mono font-semibold text-slate-900">**teks tebal**</code> untuk penekanan tipografi bersih.
+            </span>
+            <button
+              type="button"
+              onclick="wrapSelectionWithBold()"
+              class="px-2 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800 hover:bg-slate-100 shrink-0"
+              title="Tebalkan teks yang dipilih"
+            >
+              B
+            </button>
+          </div>
+
+          <!-- Dynamic Fields Container based on Slide Layout -->
+          <div id="dynamicContentFields" class="space-y-3.5">
+            <!-- Diisi secara dinamis sesuai tipe layout slide -->
+          </div>
+
+          <!-- Text Size Scale & Alignment -->
+          <div class="pt-2 border-t border-slate-100 grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">Skala Ukuran Teks</label>
+              <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onclick="updateSlideProp('textScale', 'sm')"
+                  id="btnScaleSm"
+                  class="py-1.5 rounded-lg text-xs font-medium transition-all"
+                >Kecil</button>
+                <button
+                  type="button"
+                  onclick="updateSlideProp('textScale', 'md')"
+                  id="btnScaleMd"
+                  class="py-1.5 rounded-lg text-xs font-medium transition-all"
+                >Normal</button>
+                <button
+                  type="button"
+                  onclick="updateSlideProp('textScale', 'lg')"
+                  id="btnScaleLg"
+                  class="py-1.5 rounded-lg text-xs font-medium transition-all"
+                >Besar</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">Perataan Teks</label>
+              <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onclick="updateSlideProp('align', 'left')"
+                  id="btnAlignLeft"
+                  class="py-1.5 rounded-lg text-xs font-medium transition-all"
+                >Rata Kiri</button>
+                <button
+                  type="button"
+                  onclick="updateSlideProp('align', 'center')"
+                  id="btnAlignCenter"
+                  class="py-1.5 rounded-lg text-xs font-medium transition-all"
+                >Tengah</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: GAYA & WARNA -->
+        <div id="tabPanelGaya" class="space-y-5 hidden">
+          <!-- Preset Background Putih / Netral -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              Preset Latar Putih / Netral
+            </label>
+            <div id="bgPresetList" class="grid grid-cols-1 gap-1.5">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+
+          <!-- Pilihan Tekstur Kertas Halus -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              Tekstur Kertas Halus
+            </label>
+            <div id="texturePresetList" class="grid grid-cols-2 gap-2">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+
+          <!-- Pilihan Gaya Tipografi -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              Pasangan Gaya Font
+            </label>
+            <div id="fontPresetList" class="space-y-1.5">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+
+          <!-- Warna Aksen Teks Minimalis -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              Warna Aksen Tipografi Minimalis
+            </label>
+            <div id="accentColorList" class="grid grid-cols-2 gap-2">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+
+          <!-- Branding Konsisten -->
+          <div class="pt-3 border-t border-slate-200 space-y-3">
+            <span class="block text-xs font-bold uppercase tracking-wider text-slate-500">
+              Branding & Identitas Slide
+            </span>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Handle Kreator</label>
+              <input
+                type="text"
+                id="inputCreatorHandle"
+                value="@kakmuh"
+                oninput="updateGlobalBranding('handle', this.value)"
+                placeholder="@kakmuh"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15 focus:border-slate-900"
+              />
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-xs font-semibold text-slate-700">Judul Seri / Topik Header</label>
+                <label class="inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="chkShowSeries"
+                    checked
+                    onchange="updateGlobalBranding('showSeries', this.checked)"
+                    class="rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                  />
+                  <span>Tampilkan</span>
+                </label>
+              </div>
+              <input
+                type="text"
+                id="inputSeriesTitle"
+                value="CATATAN MINIMALIS"
+                oninput="updateGlobalBranding('seriesTitle', this.value)"
+                placeholder="Contoh: CATATAN REFLEKSI"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15 focus:border-slate-900"
+              />
+            </div>
+
+            <div class="flex items-center justify-between py-1">
+              <span class="text-xs font-semibold text-slate-700">Nomor Halaman Otomatis (01 / 05)</span>
+              <input
+                type="checkbox"
+                id="chkShowPageNum"
+                checked
+                onchange="updateGlobalBranding('showPageNum', this.checked)"
+                class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+              />
+            </div>
+
+            <button
+              type="button"
+              onclick="applyStyleToAllSlides()"
+              class="w-full py-2.5 px-4 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-all shadow-sm flex items-center justify-center gap-2"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Terapkan Gaya ke Semua Slide</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 3: EKSPOR & CAPTION IG -->
+        <div id="tabPanelEkspor" class="space-y-4 hidden">
+          <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-2.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">
+              Unduh Gambar Resolusi Tinggi (1080×1440 px)
+            </h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Setiap slide dirender pada ukuran asli 1080×1440 piksel tanpa panduan Safe Zone agar siap unggah ke Instagram.
+            </p>
+            <div class="grid grid-cols-1 gap-2 pt-1">
+              <button
+                type="button"
+                onclick="exportSinglePng()"
+                class="w-full py-2.5 px-3.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-2"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>Save PNG (Slide Aktif)</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="exportAllPngSequential()"
+                class="w-full py-2.5 px-3.5 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 flex items-center justify-center gap-2 shadow-sm"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="8" y="2" width="13" height="16" rx="2" />
+                  <path d="M4 6v14a2 2 0 0 0 2 2h11" />
+                </svg>
+                <span>Save All PNG (Langsung ke Galeri)</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="exportAllZip()"
+                class="w-full py-2.5 px-3.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-2"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 8v13H3V8" />
+                  <path d="M1 3h22v5H1z" />
+                  <path d="M10 12h4" />
+                </svg>
+                <span>Save All ZIP (kakmuh-carousel.zip)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Caption Editor Inline -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Caption Instagram
+              </label>
+              <button
+                type="button"
+                onclick="generateCaptionFromSlides()"
+                class="text-[11px] font-semibold text-slate-700 hover:text-slate-900 underline"
+              >
+                Susun Otomatis dari Slide
+              </button>
+            </div>
+            <textarea
+              id="inlineCaptionTextarea"
+              rows="7"
+              oninput="syncCaptionText(this.value)"
+              class="w-full p-3 rounded-xl border border-slate-200 text-xs leading-relaxed text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/15 focus:border-slate-900"
+            ></textarea>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onclick="copyCaptionToClipboard()"
+                class="py-2.5 px-3 rounded-xl border border-slate-200 bg-white text-slate-800 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-1.5"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+                <span>Salin Caption</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="postToInstagram()"
+                class="py-2.5 px-3 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+                <span>Posting ke IG</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+  </main>
+
+  <!-- ==================== HIDDEN OFF-SCREEN EXPORT STAGING ==================== -->
+  <!-- Dirender pada ukuran presisi 1080x1440 px tanpa transform scale dan tanpa overlay Safe Zone -->
+  <div
+    id="exportStagingContainer"
+    aria-hidden="true"
+    style="position: fixed; left: -10000px; top: 0; width: 1080px; height: 1440px; pointer-events: none; z-index: -1;"
+  ></div>
+
+  <!-- ==================== MODAL: TAMBAH SLIDE BARU ==================== -->
+  <div
+    id="addSlideModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
+  >
+    <div class="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Tambah Slide Baru</h2>
+          <p class="text-xs text-slate-500">Pilih preset tata letak bersih untuk slide berikutnya</p>
+        </div>
+        <button
+          type="button"
+          onclick="closeAddSlideModal()"
+          class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="addSlideTemplateOptions">
+        <!-- Diisi oleh JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CAPTION & POSTING KE IG ==================== -->
+  <div
+    id="captionModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
+  >
+    <div class="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Caption & Posting ke Instagram</h2>
+            <p class="text-xs text-slate-500">Salin caption dan bagikan seluruh slide 1080×1440 px</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onclick="closeCaptionModal()"
+          class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-semibold text-slate-700">Teks Caption Instagram</label>
+            <button
+              type="button"
+              onclick="generateCaptionFromSlides()"
+              class="text-xs font-semibold text-slate-700 hover:text-slate-900 underline"
+            >
+              Susun Ulang dari Isi Slide
+            </button>
+          </div>
+          <textarea
+            id="modalCaptionTextarea"
+            rows="7"
+            oninput="syncCaptionText(this.value)"
+            class="w-full p-3 rounded-xl border border-slate-200 text-sm leading-relaxed text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/15 focus:border-slate-900"
+          ></textarea>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 leading-relaxed">
+          <strong>Cara Kerja Posting ke IG:</strong> Pada ponsel (iOS/Android), tombol <em>Posting ke IG</em> otomatis menyalin caption dan membuka menu berbagi sistem berisi seluruh file PNG. Pada desktop, seluruh PNG akan diunduh berurutan, caption disalin, dan Instagram dibuka otomatis.
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
+          <button
+            type="button"
+            onclick="copyCaptionToClipboard()"
+            class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-2"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            <span>Salin Caption</span>
+          </button>
+          <button
+            type="button"
+            onclick="postToInstagram()"
+            class="flex-1 py-2.5 px-4 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 flex items-center justify-center gap-2 shadow-sm"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+            <span>Posting ke IG Sekarang</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: KONFIRMASI HAPUS SLIDE ==================== -->
+  <div
+    id="confirmDeleteModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
+  >
+    <div class="bg-white rounded-2xl max-w-sm w-full border border-slate-200 shadow-2xl p-5 space-y-4">
+      <div class="space-y-1">
+        <h3 class="text-base font-bold text-slate-900">Hapus Slide Ini?</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">
+          Slide aktif akan dihapus dari urutan carousel. Tindakan ini tidak dapat dibatalkan.
+        </p>
+      </div>
+      <div class="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onclick="closeDeleteModal()"
+          class="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          Batal
+        </button>
+        <button
+          type="button"
+          onclick="confirmDeleteSlide()"
+          class="px-3.5 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700"
+        >
+          Ya, Hapus Slide
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== OVERLAY PROGRES RENDER EKSPOR ==================== -->
+  <div
+    id="exportProgressOverlay"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
+  >
+    <div class="bg-white rounded-2xl max-w-xs w-full border border-slate-200 shadow-2xl p-6 text-center space-y-3">
+      <div class="w-10 h-10 mx-auto rounded-full border-2 border-slate-200 border-t-slate-900 animate-spin"></div>
+      <div class="space-y-1">
+        <h3 id="exportProgressTitle" class="text-sm font-bold text-slate-900">Merender Slide 1/5...</h3>
+        <p id="exportProgressSubtitle" class="text-xs text-slate-500">Menyiapkan kanvas presisi 1080×1440 px</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div
+    id="toastContainer"
+    class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-sm"
+  ></div>
+
+  <script>
+    /**
+     * =========================================================================
+     * IG CAROUSEL STUDIO — @kakmuh
+     * Aplikasi Desain Carousel Instagram 3:4 (1080x1440 px) Estetika Putih Bersih
+     * Tanpa efek stabilo / marker sama sekali.
+     * =========================================================================
+     */
+
+    // 1. KONFIGURASI PRESET DESAIN
+    const BG_PRESETS = [
+      { id: 'pure-white', name: 'Putih Murni', hex: '#FFFFFF', border: '#E2E8F0' },
+      { id: 'soft-slate', name: 'Putih Abu Halus', hex: '#F8FAFC', border: '#E2E8F0' },
+      { id: 'warm-ivory', name: 'Kertas Hangat / Warm Ivory', hex: '#FAF9F6', border: '#E7E5E4' },
+      { id: 'cool-alabaster', name: 'Putih Dingin / Cool Alabaster', hex: '#F4F7FA', border: '#DCE4EE' },
+      { id: 'minimal-cream', name: 'Krem Minimalis', hex: '#FDFBF7', border: '#EAE4D7' }
+    ];
+
+    const TEXTURE_PRESETS = [
+      { id: 'none', name: 'Polos (Tanpa Tekstur)', cssClass: 'paper-texture-none' },
+      { id: 'dots', name: 'Dot Grid Tipis', cssClass: 'paper-texture-dots' },
+      { id: 'grid', name: 'Kotak Halus', cssClass: 'paper-texture-grid' },
+      { id: 'lines', name: 'Garis Buku Tipis', cssClass: 'paper-texture-lines' }
+    ];
+
+    const FONT_PRESETS = [
+      {
+        id: 'modern',
+        name: 'Modern Clean Sans',
+        desc: 'Plus Jakarta Sans + Inter',
+        cssClass: 'font-pair-modern'
+      },
+      {
+        id: 'editorial',
+        name: 'Editorial Serif + Sans',
+        desc: 'Playfair Display + Inter',
+        cssClass: 'font-pair-editorial'
+      },
+      {
+        id: 'geometric',
+        name: 'Geometric Minimalist',
+        desc: 'Outfit + Plus Jakarta Sans',
+        cssClass: 'font-pair-geometric'
+      }
+    ];
+
+    const ACCENT_COLORS = [
+      { id: 'ink', name: 'Hitam Pekat', hex: '#0F172A' },
+      { id: 'slate-blue', name: 'Biru Slate', hex: '#2563EB' },
+      { id: 'emerald', name: 'Hijau Zamrud', hex: '#059669' },
+      { id: 'terracotta', name: 'Terracotta', hex: '#C2410C' }
+    ];
+
+    const LAYOUT_TYPES = [
+      { id: 'cover', label: 'Cover', desc: 'Judul utama kuat, kategori minimalis & ajakan geser' },
+      { id: 'content', label: 'Konten', desc: 'Nomor urut bersih, poin edukasi & kotak catatan garis halus' },
+      { id: 'quote', label: 'Kutipan', desc: 'Tanda kutip tipografis besar & kalimat reflektif di tengah' },
+      { id: 'visual', label: 'Visual', desc: 'Bingkai foto/ilustrasi dengan kontrol zoom & posisi X/Y' },
+      { id: 'cta', label: 'CTA', desc: 'Ringkasan penutup & ajakan Simpan, Bagikan, Ikuti' }
+    ];
+
+    // Ilustrasi SVG Minimalis Default untuk Slide Visual (sebelum user unggah foto lokal)
+    const DEFAULT_VISUAL_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="900" height="640" viewBox="0 0 900 640" fill="none">
+        <rect width="900" height="640" fill="#F8FAFC"/>
+        <circle cx="450" cy="320" r="210" stroke="#CBD5E1" stroke-width="1.5"/>
+        <circle cx="450" cy="320" r="140" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="6 6"/>
+        <line x1="160" y1="320" x2="740" y2="320" stroke="#CBD5E1" stroke-width="1.5"/>
+        <line x1="450" y1="80" x2="450" y2="560" stroke="#CBD5E1" stroke-width="1.5"/>
+        <rect x="360" y="230" width="180" height="180" rx="90" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+        <circle cx="450" cy="320" r="18" fill="#0F172A"/>
+        <text x="450" y="485" text-anchor="middle" fill="#64748B" font-family="sans-serif" font-size="18" letter-spacing="3">RUANG VISUAL MINIMALIS</text>
+      </svg>
+    `)}`;
+
+    // 2. STATE UTAMA APLIKASI (Preload 5 Slide Edukasi/Refleksi Minimalis @kakmuh)
+    const state = {
+      activeIndex: 0,
+      activeTab: 'konten',
+      showSafeZone: false,
+      showSeamless: true,
+      lastFocusedFieldId: null,
+      branding: {
+        handle: '@kakmuh',
+        seriesTitle: 'CATATAN MINIMALIS',
+        showSeries: true,
+        showPageNum: true
+      },
+      caption: `Kejernihan pikiran sering kali lahir bukan dari menambah lebih banyak hal, melainkan dari keberanian menyederhanakan.\n\nSimpan catatan ringkas ini untuk dibaca kembali saat kepala terasa penuh, dan bagikan ke teman yang sedang butuh ruang bernapas.\n\nIkuti @kakmuh untuk refleksi harian dan catatan desain yang tenang.\n\n#kakmuh #catatanminimalis #refleksidiri #produktivitas #desainminimalis #belajarsederhana`,
+      slides: [
+        {
+          id: 'slide-1',
+          layout: 'cover',
+          bgId: 'pure-white',
+          textureId: 'dots',
+          fontId: 'modern',
+          accentId: 'ink',
+          textScale: 'md',
+          align: 'left',
+          eyebrow: 'REFLEKSI & FOKUS',
+          title: 'Seni Bekerja dengan **Pikiran yang Jernih** di Tengah Kebisingan',
+          subtitle: 'Empat prinsip sederhana untuk mengurangi distraksi dan menjaga kedalaman fokus setiap hari.',
+          swipeLabel: 'Geser untuk membaca →'
+        },
+        {
+          id: 'slide-2',
+          layout: 'content',
+          bgId: 'pure-white',
+          textureId: 'none',
+          fontId: 'modern',
+          accentId: 'slate-blue',
+          textScale: 'md',
+          align: 'left',
+          stepNumber: '01',
+          title: 'Kurangi Pilihan yang Tidak Perlu',
+          body: 'Setiap keputusan kecil menguras energi mental kita sejak pagi. Ketika ruang kerja dan jadwal terlalu padat, perhatian mudah terpecah sebelum pekerjaan utama dimulai.\n\nMulailah hari dengan menentukan **satu prioritas utama** yang paling berdampak.',
+          noteLabel: 'INTISARI PRAKTIS',
+          noteText: 'Fokus bukan tentang mengerjakan semuanya sekaligus, melainkan memilih hal yang tepat untuk diabaikan hari ini.'
+        },
+        {
+          id: 'slide-3',
+          layout: 'quote',
+          bgId: 'warm-ivory',
+          textureId: 'none',
+          fontId: 'editorial',
+          accentId: 'ink',
+          textScale: 'md',
+          align: 'center',
+          quoteText: 'Ketenangan bukan berarti tidak ada kesibukan, melainkan kemampuan menjaga **ruang hening** di dalam pikiran saat melangkah.',
+          quoteAuthor: '@kakmuh',
+          quoteRole: 'Catatan Harian — Edisi Kesederhanaan'
+        },
+        {
+          id: 'slide-4',
+          layout: 'visual',
+          bgId: 'pure-white',
+          textureId: 'grid',
+          fontId: 'modern',
+          accentId: 'emerald',
+          textScale: 'md',
+          align: 'left',
+          visualPosition: 'top', // 'top' atau 'bottom'
+          imageUrl: DEFAULT_VISUAL_SVG,
+          imgZoom: 100,
+          imgX: 0,
+          imgY: 0,
+          title: 'Beri Jeda di Antara Dua Aktivitas',
+          body: 'Transisi tanpa jeda membuat otak terus membawa beban tugas sebelumnya. Luangkan **lima menit tanpa layar** untuk menata ulang arah sebelum berpindah fokus.'
+        },
+        {
+          id: 'slide-5',
+          layout: 'cta',
+          bgId: 'soft-slate',
+          textureId: 'dots',
+          fontId: 'modern',
+          accentId: 'ink',
+          textScale: 'md',
+          align: 'center',
+          eyebrow: 'PENUTUP',
+          title: 'Langkah Kecil yang Konsisten Selalu **Lebih Bermakna**',
+          body: 'Jika tulisan singkat ini bermanfaat, simpan sebagai pengingat dan bagikan kepada rekan yang membutuhkannya.',
+          ctaSaveLabel: 'Simpan',
+          ctaSaveSub: 'Baca lagi nanti',
+          ctaShareLabel: 'Bagikan',
+          ctaShareSub: 'Kirim ke teman',
+          ctaFollowLabel: 'Ikuti',
+          ctaFollowSub: '@kakmuh'
+        }
+      ]
+    };
+
+    // 3. HELPER FORMAT TEKS (TANPA EFEK STABILO — MURNI TIPOGRAFI)
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    /**
+     * Mengubah sintaks **teks tebal** menjadi <strong> murni tanpa warna latar / stabilo.
+     * Juga mengubah baris baru menjadi <br> dengan rapi.
+     */
+    function formatCleanTypography(rawText, accentHex) {
+      const escaped = escapeHtml(rawText || '');
+      // Parse **bold** -> <strong> bersih dengan bobot tinggi
+      const withBold = escaped.replace(/\*\*(.+?)\*\*/g, (_, inner) => {
+        return `<strong style="font-weight: 800; color: ${accentHex};">${inner}</strong>`;
+      });
+      return withBold.replace(/\n/g, '<br />');
+    }
+
+    function padTwo(num) {
+      return String(num).padStart(2, '0');
+    }
+
+    function getBgObj(id) {
+      return BG_PRESETS.find(b => b.id === id) || BG_PRESETS[0];
+    }
+
+    function getTextureObj(id) {
+      return TEXTURE_PRESETS.find(t => t.id === id) || TEXTURE_PRESETS[0];
+    }
+
+    function getFontObj(id) {
+      return FONT_PRESETS.find(f => f.id === id) || FONT_PRESETS[0];
+    }
+
+    function getAccentObj(id) {
+      return ACCENT_COLORS.find(a => a.id === id) || ACCENT_COLORS[0];
+    }
+
+    // 4. GENERATOR HTML KANVAS SLIDE (1080x1440 px)
+    /**
+     * Merender HTML utuh untuk satu slide pada dimensi 1080x1440 px.
+     * @param {Object} slide - Objek data slide
+     * @param {number} index - Indeks slide (0-based)
+     * @param {number} total - Total slide
+     * @param {boolean} isExport - Jika true, garis Safe Zone IG disembunyikan otomatis
+     */
+    function buildSlideArtboardHtml(slide, index, total, isExport = false) {
+      const bg = getBgObj(slide.bgId);
+      const tex = getTextureObj(slide.textureId);
+      const font = getFontObj(slide.fontId);
+      const accent = getAccentObj(slide.accentId);
+
+      const scaleMultiplier = slide.textScale === 'sm' ? 0.9 : slide.textScale === 'lg' ? 1.1 : 1.0;
+      const isCenter = slide.align === 'center';
+      const textAlignStyle = isCenter ? 'center' : 'left';
+      const alignItemsClass = isCenter ? 'items-center text-center' : 'items-start text-left';
+
+      const handleText = escapeHtml(state.branding.handle || '@kakmuh');
+      const seriesText = escapeHtml(state.branding.seriesTitle || '');
+      const pageLabel = `${padTwo(index + 1)} / ${padTwo(total)}`;
+
+      // Header Konsisten (Top Bar)
+      const headerHtml = `
+        <div style="padding: 72px 84px 0 84px; display: flex; align-items: center; justify-content: space-between; z-index: 2;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            ${
+              state.branding.showSeries && seriesText
+                ? `<span class="slide-body" style="font-size: 21px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #64748B;">${seriesText}</span>`
+                : `<span style="display: inline-block; width: 32px; height: 2px; background-color: ${accent.hex};"></span>`
+            }
+          </div>
+          <div>
+            ${
+              state.branding.showPageNum
+                ? `<span class="slide-body" style="font-size: 22px; font-weight: 600; letter-spacing: 0.08em; color: #64748B; font-variant-numeric: tabular-nums;">${pageLabel}</span>`
+                : ''
+            }
+          </div>
+        </div>
+      `;
+
+      // Garis Penghubung Mode Seamless (Horizontal hairline yang menyambung antar-slide)
+      const seamlessHtml = state.showSeamless
+        ? `
+          <div style="position: relative; width: 100%; height: 2px; margin-top: 32px; z-index: 2;">
+            <div style="width: 100%; height: 1.5px; background-color: rgba(15, 23, 42, 0.12);"></div>
+            ${
+              index > 0
+                ? `<div style="position: absolute; left: 0; top: -4px; width: 24px; height: 9px; border-right: 2px solid ${accent.hex};"></div>`
+                : ''
+            }
+            ${
+              index < total - 1
+                ? `<div style="position: absolute; right: 0; top: -4px; width: 24px; height: 9px; border-left: 2px solid ${accent.hex};"></div>`
+                : ''
+            }
+          </div>
+        `
+        : '';
+
+      // Footer Konsisten (Creator Handle & Subtle Directional Cue)
+      const footerCue =
+        slide.layout === 'cover'
+          ? escapeHtml(slide.swipeLabel || 'Geser →')
+          : index < total - 1
+          ? 'Geser →'
+          : 'Selesai';
+
+      const footerHtml = `
+        <div style="padding: 0 84px 72px 84px; display: flex; align-items: center; justify-content: space-between; z-index: 2;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <span style="width: 10px; height: 10px; border-radius: 9999px; background-color: ${accent.hex}; display: inline-block;"></span>
+            <span class="slide-body" style="font-size: 25px; font-weight: 600; color: #0F172A; letter-spacing: -0.01em;">${handleText}</span>
+          </div>
+          <span class="slide-body" style="font-size: 22px; font-weight: 500; color: #64748B;">${footerCue}</span>
+        </div>
+      `;
+
+      // Konten Utama Sesuai 5 Preset Tata Letak
+      let bodyContentHtml = '';
+
+      if (slide.layout === 'cover') {
+        const titleSize = Math.round(78 * scaleMultiplier);
+        const subSize = Math.round(33 * scaleMultiplier);
+        bodyContentHtml = `
+          <div class="flex-1 flex flex-col justify-center ${alignItemsClass}" style="padding: 40px 84px; z-index: 2;">
+            ${
+              slide.eyebrow
+                ? `<div style="margin-bottom: 36px; display: inline-flex; align-items: center; padding: 12px 26px; border: 1.5px solid ${accent.hex}; border-radius: 9999px;">
+                    <span class="slide-body" style="font-size: 21px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: ${accent.hex};">
+                      ${escapeHtml(slide.eyebrow)}
+                    </span>
+                  </div>`
+                : ''
+            }
+            <h1 class="slide-display" style="font-size: ${titleSize}px; font-weight: 700; line-height: 1.14; letter-spacing: -0.025em; color: #0F172A; margin: 0 0 40px 0; text-align: ${textAlignStyle};">
+              ${formatCleanTypography(slide.title, accent.hex)}
+            </h1>
+            <div style="width: 84px; height: 3px; background-color: ${accent.hex}; margin-bottom: 40px;"></div>
+            ${
+              slide.subtitle
+                ? `<p class="slide-body" style="font-size: ${subSize}px; font-weight: 400; line-height: 1.55; color: #475569; margin: 0; max-width: 860px; text-align: ${textAlignStyle};">
+                    ${formatCleanTypography(slide.subtitle, accent.hex)}
+                  </p>`
+                : ''
+            }
+          </div>
+        `;
+      } else if (slide.layout === 'content') {
+        const numSize = Math.round(68 * scaleMultiplier);
+        const titleSize = Math.round(54 * scaleMultiplier);
+        const bodySize = Math.round(32 * scaleMultiplier);
+        const noteSize = Math.round(27 * scaleMultiplier);
+
+        bodyContentHtml = `
+          <div class="flex-1 flex flex-col justify-center ${alignItemsClass}" style="padding: 36px 84px; z-index: 2;">
+            ${
+              slide.stepNumber
+                ? `<div class="slide-display" style="font-size: ${numSize}px; font-weight: 700; line-height: 1; color: ${accent.hex}; margin-bottom: 24px; font-variant-numeric: tabular-nums;">
+                    ${escapeHtml(slide.stepNumber)}
+                  </div>`
+                : ''
+            }
+            <h2 class="slide-display" style="font-size: ${titleSize}px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0F172A; margin: 0 0 32px 0; text-align: ${textAlignStyle};">
+              ${formatCleanTypography(slide.title, accent.hex)}
+            </h2>
+            <div class="slide-body" style="font-size: ${bodySize}px; font-weight: 400; line-height: 1.65; color: #334155; margin: 0 0 44px 0; width: 100%; text-align: ${textAlignStyle};">
+              ${formatCleanTypography(slide.body, accent.hex)}
+            </div>
+            ${
+              slide.noteText
+                ? `<div style="width: 100%; border: 1.5px solid #CBD5E1; border-radius: 24px; padding: 34px 38px; background-color: rgba(255, 255, 255, 0.72); text-align: left;">
+                    <div class="slide-body" style="font-size: 19px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: ${accent.hex}; margin-bottom: 12px;">
+                      ${escapeHtml(slide.noteLabel || 'CATATAN RINGKAS')}
+                    </div>
+                    <div class="slide-body" style="font-size: ${noteSize}px; font-weight: 500; line-height: 1.55; color: #0F172A;">
+                      ${formatCleanTypography(slide.noteText, accent.hex)}
+                    </div>
+                  </div>`
+                : ''
+            }
+          </div>
+        `;
+      } else if (slide.layout === 'quote') {
+        const quoteSize = Math.round(52 * scaleMultiplier);
+        bodyContentHtml = `
+          <div class="flex-1 flex flex-col justify-center ${alignItemsClass}" style="padding: 40px 92px; z-index: 2;">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 156px; font-weight: 700; line-height: 0.75; color: ${accent.hex}; margin-bottom: 24px; opacity: 0.9;">
+              “
+            </div>
+            <blockquote class="slide-display" style="font-size: ${quoteSize}px; font-weight: 600; line-height: 1.38; letter-spacing: -0.015em; color: #0F172A; margin: 0 0 48px 0; text-align: ${textAlignStyle};">
+              ${formatCleanTypography(slide.quoteText, accent.hex)}
+            </blockquote>
+            <div style="width: 72px; height: 2.5px; background-color: ${accent.hex}; margin-bottom: 28px;"></div>
+            <div class="slide-body" style="font-size: 28px; font-weight: 700; color: #0F172A; margin-bottom: 6px;">
+              ${escapeHtml(slide.quoteAuthor || handleText)}
+            </div>
+            ${
+              slide.quoteRole
+                ? `<div class="slide-body" style="font-size: 23px; font-weight: 400; color: #64748B;">
+                    ${escapeHtml(slide.quoteRole)}
+                  </div>`
+                : ''
+            }
+          </div>
+        `;
+      } else if (slide.layout === 'visual') {
+        const titleSize = Math.round(46 * scaleMultiplier);
+        const bodySize = Math.round(29 * scaleMultiplier);
+        const zoom = Number(slide.imgZoom || 100) / 100;
+        const posX = Number(slide.imgX || 0);
+        const posY = Number(slide.imgY || 0);
+        const imgSrc = slide.imageUrl || DEFAULT_VISUAL_SVG;
+
+        const frameHtml = `
+          <div style="width: 100%; height: 560px; border-radius: 28px; border: 1.5px solid #CBD5E1; overflow: hidden; position: relative; background-color: #F8FAFC;">
+            <img
+              src="${imgSrc}"
+              alt="Visual Slide"
+              style="width: 100%; height: 100%; object-fit: cover; transform: translate(${posX}%, ${posY}%) scale(${zoom}); transform-origin: center center; display: block;"
+            />
+          </div>
+        `;
+
+        const textBlockHtml = `
+          <div class="flex flex-col ${alignItemsClass}" style="width: 100%;">
+            <h2 class="slide-display" style="font-size: ${titleSize}px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0F172A; margin: 0 0 20px 0; text-align: ${textAlignStyle};">
+              ${formatCleanTypography(slide.title, accent.hex)}
+            </h2>
+            <p class="slide-body" style="font-size: ${bodySize}px; font-weight: 400; line-height: 1.6; color: #475569; margin: 0; text-align: ${textAlignStyle};">
+              ${formatCleanTypography(slide.body, accent.hex)}
+            </p>
+          </div>
+        `;
+
+        bodyContentHtml = `
+          <div class="flex-1 flex flex-col justify-center" style="padding: 28px 84px; gap: 42px; z-index: 2;">
+            ${slide.visualPosition === 'bottom' ? `${textBlockHtml}${frameHtml}` : `${frameHtml}${textBlockHtml}`}
+          </div>
+        `;
+      } else if (slide.layout === 'cta') {
+        const titleSize = Math.round(62 * scaleMultiplier);
+        const bodySize = Math.round(31 * scaleMultiplier);
+        const followSub = slide.ctaFollowSub ? escapeHtml(slide.ctaFollowSub) : handleText;
+
+        bodyContentHtml = `
+          <div class="flex-1 flex flex-col justify-center ${alignItemsClass}" style="padding: 36px 84px; z-index: 2;">
+            ${
+              slide.eyebrow
+                ? `<div class="slide-body" style="font-size: 21px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: ${accent.hex}; margin-bottom: 24px;">
+                    ${escapeHtml(slide.eyebrow)}
+                  </div>`
+                : ''
+            }
+            <h2 class="slide-display" style="font-size: ${titleSize}px; font-weight: 700; line-height: 1.18; letter-spacing: -0.02em; color: #0F172A; margin: 0 0 28px 0; text-align: ${textAlignStyle};">
+              ${formatCleanTypography(slide.title, accent.hex)}
+            </h2>
+            <p class="slide-body" style="font-size: ${bodySize}px; font-weight: 400; line-height: 1.6; color: #475569; margin: 0 0 56px 0; max-width: 860px; text-align: ${textAlignStyle};">
+              ${formatCleanTypography(slide.body, accent.hex)}
+            </p>
+
+            <!-- 3-Column Clean Action Cards (Tanpa Stabilo) -->
+            <div style="width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; text-align: center;">
+              <!-- Simpan -->
+              <div style="border: 1.5px solid #CBD5E1; border-radius: 24px; padding: 32px 20px; background-color: rgba(255,255,255,0.85); display: flex; flex-direction: column; align-items: center;">
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="${accent.hex}" stroke-width="2" style="margin-bottom: 16px;">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                </svg>
+                <div class="slide-display" style="font-size: 26px; font-weight: 700; color: #0F172A; margin-bottom: 6px;">
+                  ${escapeHtml(slide.ctaSaveLabel || 'Simpan')}
+                </div>
+                <div class="slide-body" style="font-size: 21px; color: #64748B;">
+                  ${escapeHtml(slide.ctaSaveSub || 'Baca lagi nanti')}
+                </div>
+              </div>
+
+              <!-- Bagikan -->
+              <div style="border: 1.5px solid #CBD5E1; border-radius: 24px; padding: 32px 20px; background-color: rgba(255,255,255,0.85); display: flex; flex-direction: column; align-items: center;">
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="${accent.hex}" stroke-width="2" style="margin-bottom: 16px;">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+                <div class="slide-display" style="font-size: 26px; font-weight: 700; color: #0F172A; margin-bottom: 6px;">
+                  ${escapeHtml(slide.ctaShareLabel || 'Bagikan')}
+                </div>
+                <div class="slide-body" style="font-size: 21px; color: #64748B;">
+                  ${escapeHtml(slide.ctaShareSub || 'Kirim ke teman')}
+                </div>
+              </div>
+
+              <!-- Ikuti -->
+              <div style="border: 1.5px solid ${accent.hex}; border-radius: 24px; padding: 32px 20px; background-color: rgba(255,255,255,0.95); display: flex; flex-direction: column; align-items: center;">
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="${accent.hex}" stroke-width="2" style="margin-bottom: 16px;">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="8.5" cy="7" r="4" />
+                  <line x1="20" y1="8" x2="20" y2="14" />
+                  <line x1="23" y1="11" x2="17" y2="11" />
+                </svg>
+                <div class="slide-display" style="font-size: 26px; font-weight: 700; color: #0F172A; margin-bottom: 6px;">
+                  ${escapeHtml(slide.ctaFollowLabel || 'Ikuti')}
+                </div>
+                <div class="slide-body" style="font-size: 21px; font-weight: 600; color: ${accent.hex};">
+                  ${followSub}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Overlay Safe Zone IG (Hanya muncul di Preview saat toggle aktif; otomatis tidak dirender saat ekspor)
+      const safeZoneOverlayHtml =
+        !isExport && state.showSafeZone
+          ? `
+            <div style="position: absolute; inset: 0; pointer-events: none; z-index: 20;">
+              <!-- Margin Aman Luar (Top/Bottom UI & Side Margins) -->
+              <div style="position: absolute; top: 120px; bottom: 140px; left: 72px; right: 72px; border: 2px dashed rgba(37, 99, 235, 0.55); border-radius: 16px;">
+                <span style="position: absolute; top: 10px; left: 14px; background: rgba(255,255,255,0.92); color: #2563EB; font-size: 18px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(37,99,235,0.3);">
+                  SAFE ZONE KONTEN IG
+                </span>
+              </div>
+              <!-- Garis Potong Feed Profil 1:1 (1080x1080 terpusat vertikal y=180..1260) -->
+              <div style="position: absolute; top: 180px; bottom: 180px; left: 0; right: 0; border-top: 2px dotted rgba(225, 29, 72, 0.65); border-bottom: 2px dotted rgba(225, 29, 72, 0.65);">
+                <span style="position: absolute; top: 10px; right: 18px; background: rgba(255,255,255,0.92); color: #E11D48; font-size: 17px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(225,29,72,0.3);">
+                  BATAS CROP GRID PROFIL 1:1
+                </span>
+              </div>
+            </div>
+          `
+          : '';
+
+      return `
+        <div
+          class="carousel-artboard ${tex.cssClass} ${font.cssClass}"
+          style="background-color: ${bg.hex}; color: #0F172A;"
+        >
+          <div>
+            ${headerHtml}
+            ${seamlessHtml}
+          </div>
+          ${bodyContentHtml}
+          ${footerHtml}
+          ${safeZoneOverlayHtml}
+        </div>
+      `;
+    }
+
+    // 5. RESPONSIVE CANVAS SCALING DENGAN RESIZEOBSERVER
+    function updateCanvasPreviewScale() {
+      const viewport = document.getElementById('previewViewport');
+      const wrapper = document.getElementById('scaledCanvasWrapper');
+      const mount = document.getElementById('previewCanvasMount');
+      const zoomText = document.getElementById('zoomIndicator');
+      if (!viewport || !wrapper || !mount) return;
+
+      const styles = window.getComputedStyle(viewport);
+      const padX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+      const padY = parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom);
+
+      const availW = Math.max(220, viewport.clientWidth - padX);
+      const availH = Math.max(280, viewport.clientHeight - padY);
+
+      const scaleX = availW / 1080;
+      const scaleY = availH / 1440;
+      const scale = Math.min(scaleX, scaleY, 0.72); // Maksimal 0.72 agar tetap nyaman di monitor ultra-wide
+
+      const scaledW = Math.round(1080 * scale);
+      const scaledH = Math.round(1440 * scale);
+
+      wrapper.style.width = `${scaledW}px`;
+      wrapper.style.height = `${scaledH}px`;
+      mount.style.transform = `scale(${scale})`;
+
+      if (zoomText) {
+        zoomText.textContent = `Skala: ${Math.round(scale * 100)}%`;
+      }
+    }
+
+    // 6. RENDER UI KOMPONEN STUDIO
+    function renderCanvasPreview() {
+      const mount = document.getElementById('previewCanvasMount');
+      const slide = state.slides[state.activeIndex];
+      if (!mount || !slide) return;
+
+      mount.innerHTML = buildSlideArtboardHtml(slide, state.activeIndex, state.slides.length, false);
+      updateCanvasPreviewScale();
+
+      // Update indikator halaman & tombol prev/next
+      document.getElementById('canvasPageIndicator').textContent =
+        `Slide ${padTwo(state.activeIndex + 1)} / ${padTwo(state.slides.length)}`;
+
+      document.getElementById('btnPrevCanvas').disabled = state.activeIndex === 0;
+      document.getElementById('btnNextCanvas').disabled = state.activeIndex === state.slides.length - 1;
+      document.getElementById('btnMovePrev').disabled = state.activeIndex === 0;
+      document.getElementById('btnMoveNext').disabled = state.activeIndex === state.slides.length - 1;
+    }
+
+    function renderSlideList() {
+      const container = document.getElementById('slideListContainer');
+      const badge = document.getElementById('slideCountBadge');
+      if (!container) return;
+
+      badge.textContent = `${state.slides.length} / 20`;
+
+      container.innerHTML = state.slides
+        .map((s, idx) => {
+          const isActive = idx === state.activeIndex;
+          const bg = getBgObj(s.bgId);
+          const layoutMeta = LAYOUT_TYPES.find(l => l.id === s.layout) || LAYOUT_TYPES[0];
+          const snippet = (s.title || s.quoteText || 'Slide Tanpa Judul').replace(/\*\*/g, '');
+
+          return `
+            <button
+              type="button"
+              onclick="selectSlide(${idx})"
+              class="group text-left shrink-0 w-44 lg:w-full p-2.5 rounded-xl border transition-all flex items-center gap-2.5 ${
+                isActive
+                  ? 'border-slate-900 bg-slate-900 text-white shadow-sm'
+                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+              }"
+            >
+              <!-- Mini Ratio 3:4 Thumbnail Swatch -->
+              <div
+                class="w-8 h-11 rounded-md border shrink-0 flex flex-col items-center justify-center text-[10px] font-bold"
+                style="background-color: ${bg.hex}; border-color: ${isActive ? 'rgba(255,255,255,0.35)' : '#CBD5E1'}; color: #0F172A;"
+              >
+                ${padTwo(idx + 1)}
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-1 mb-0.5">
+                  <span class="text-[10px] font-bold uppercase tracking-wider ${
+                    isActive ? 'text-slate-300' : 'text-slate-400'
+                  }">
+                    ${layoutMeta.label}
+                  </span>
+                </div>
+                <p class="text-xs font-semibold truncate ${isActive ? 'text-white' : 'text-slate-800'}">
+                  ${escapeHtml(snippet)}
+                </p>
+              </div>
+            </button>
+          `;
+        })
+        .join('');
+    }
+
+    function renderInspector() {
+      const slide = state.slides[state.activeIndex];
+      if (!slide) return;
+
+      // 1. Render Layout Selector Grid
+      const layoutGrid = document.getElementById('layoutSelectorGrid');
+      layoutGrid.innerHTML = LAYOUT_TYPES.map(lt => {
+        const active = slide.layout === lt.id;
+        return `
+          <button
+            type="button"
+            onclick="changeSlideLayout('${lt.id}')"
+            class="py-2 px-1 rounded-xl border text-[11px] font-semibold transition-all text-center ${
+              active
+                ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+            }"
+          >
+            ${lt.label}
+          </button>
+        `;
+      }).join('');
+
+      // 2. Render Dynamic Content Fields
+      const fieldsBox = document.getElementById('dynamicContentFields');
+      let fieldsHtml = '';
+
+      if (slide.layout === 'cover') {
+        fieldsHtml = `
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Badge Kategori Minimalis</label>
+            <input type="text" id="fieldEyebrow" value="${escapeHtml(slide.eyebrow || '')}"
+              onfocus="state.lastFocusedFieldId='fieldEyebrow'"
+              oninput="updateSlideProp('eyebrow', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Judul Utama Cover</label>
+            <textarea id="fieldTitle" rows="3"
+              onfocus="state.lastFocusedFieldId='fieldTitle'"
+              oninput="updateSlideProp('title', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm leading-relaxed focus:outline-none focus:border-slate-900">${escapeHtml(slide.title || '')}</textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Subjudul Ringkas</label>
+            <textarea id="fieldSubtitle" rows="3"
+              onfocus="state.lastFocusedFieldId='fieldSubtitle'"
+              oninput="updateSlideProp('subtitle', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm leading-relaxed focus:outline-none focus:border-slate-900">${escapeHtml(slide.subtitle || '')}</textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Indikator Geser Bawah</label>
+            <input type="text" id="fieldSwipe" value="${escapeHtml(slide.swipeLabel || 'Geser →')}"
+              onfocus="state.lastFocusedFieldId='fieldSwipe'"
+              oninput="updateSlideProp('swipeLabel', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900" />
+          </div>
+        `;
+      } else if (slide.layout === 'content') {
+        fieldsHtml = `
+          <div class="grid grid-cols-3 gap-2.5">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Nomor Urut</label>
+              <input type="text" id="fieldStepNum" value="${escapeHtml(slide.stepNumber || '01')}"
+                onfocus="state.lastFocusedFieldId='fieldStepNum'"
+                oninput="updateSlideProp('stepNumber', this.value)"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono focus:outline-none focus:border-slate-900" />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Judul Poin</label>
+              <input type="text" id="fieldTitle" value="${escapeHtml(slide.title || '')}"
+                onfocus="state.lastFocusedFieldId='fieldTitle'"
+                oninput="updateSlideProp('title', this.value)"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Paragraf Penjelasan</label>
+            <textarea id="fieldBody" rows="5"
+              onfocus="state.lastFocusedFieldId='fieldBody'"
+              oninput="updateSlideProp('body', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm leading-relaxed focus:outline-none focus:border-slate-900">${escapeHtml(slide.body || '')}</textarea>
+          </div>
+          <div class="pt-1 border-t border-slate-100 space-y-2">
+            <label class="block text-xs font-semibold text-slate-700">Kotak Catatan Garis Halus (Opsional)</label>
+            <input type="text" id="fieldNoteLabel" value="${escapeHtml(slide.noteLabel || 'INTISARI')}"
+              onfocus="state.lastFocusedFieldId='fieldNoteLabel'"
+              oninput="updateSlideProp('noteLabel', this.value)"
+              placeholder="Label kotak catatan"
+              class="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs uppercase tracking-wider focus:outline-none focus:border-slate-900" />
+            <textarea id="fieldNoteText" rows="2"
+              onfocus="state.lastFocusedFieldId='fieldNoteText'"
+              oninput="updateSlideProp('noteText', this.value)"
+              placeholder="Kosongkan jika tidak ingin menampilkan kotak catatan"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm leading-relaxed focus:outline-none focus:border-slate-900">${escapeHtml(slide.noteText || '')}</textarea>
+          </div>
+        `;
+      } else if (slide.layout === 'quote') {
+        fieldsHtml = `
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Kalimat Kutipan</label>
+            <textarea id="fieldQuote" rows="4"
+              onfocus="state.lastFocusedFieldId='fieldQuote'"
+              oninput="updateSlideProp('quoteText', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm leading-relaxed focus:outline-none focus:border-slate-900">${escapeHtml(slide.quoteText || '')}</textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Atribusi / Penulis</label>
+            <input type="text" id="fieldQuoteAuthor" value="${escapeHtml(slide.quoteAuthor || '@kakmuh')}"
+              onfocus="state.lastFocusedFieldId='fieldQuoteAuthor'"
+              oninput="updateSlideProp('quoteAuthor', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Keterangan Tambahan (Opsional)</label>
+            <input type="text" id="fieldQuoteRole" value="${escapeHtml(slide.quoteRole || '')}"
+              onfocus="state.lastFocusedFieldId='fieldQuoteRole'"
+              oninput="updateSlideProp('quoteRole', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900" />
+          </div>
+        `;
+      } else if (slide.layout === 'visual') {
+        fieldsHtml = `
+          <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-3 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-700">Unggah Gambar / Foto Lokal</span>
+              <label class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 cursor-pointer">
+                <span>Pilih Gambar</span>
+                <input type="file" accept="image/*" onchange="handleVisualImageUpload(event)" class="hidden" />
+              </label>
+            </div>
+
+            <!-- Zoom & Posisi X/Y -->
+            <div class="space-y-2 pt-1">
+              <div>
+                <div class="flex justify-between text-[11px] font-medium text-slate-600 mb-1">
+                  <span>Zoom Gambar</span>
+                  <span id="lblImgZoom">${slide.imgZoom || 100}%</span>
+                </div>
+                <input type="range" min="100" max="240" value="${slide.imgZoom || 100}"
+                  oninput="updateVisualTransform('imgZoom', this.value)" class="w-full" />
+              </div>
+
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <div class="flex justify-between text-[11px] font-medium text-slate-600 mb-1">
+                    <span>Posisi X</span>
+                    <span id="lblImgX">${slide.imgX || 0}%</span>
+                  </div>
+                  <input type="range" min="-45" max="45" value="${slide.imgX || 0}"
+                    oninput="updateVisualTransform('imgX', this.value)" class="w-full" />
+                </div>
+                <div>
+                  <div class="flex justify-between text-[11px] font-medium text-slate-600 mb-1">
+                    <span>Posisi Y</span>
+                    <span id="lblImgY">${slide.imgY || 0}%</span>
+                  </div>
+                  <input type="range" min="-45" max="45" value="${slide.imgY || 0}"
+                    oninput="updateVisualTransform('imgY', this.value)" class="w-full" />
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-[11px] font-medium text-slate-600">Posisi Bingkai Visual</span>
+              <div class="flex gap-1 bg-white p-0.5 rounded-lg border border-slate-200">
+                <button type="button" onclick="updateSlideProp('visualPosition', 'top')"
+                  class="px-2 py-1 rounded text-[11px] font-medium ${slide.visualPosition !== 'bottom' ? 'bg-slate-900 text-white' : 'text-slate-600'}">Atas</button>
+                <button type="button" onclick="updateSlideProp('visualPosition', 'bottom')"
+                  class="px-2 py-1 rounded text-[11px] font-medium ${slide.visualPosition === 'bottom' ? 'bg-slate-900 text-white' : 'text-slate-600'}">Bawah</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Judul Visual</label>
+            <input type="text" id="fieldTitle" value="${escapeHtml(slide.title || '')}"
+              onfocus="state.lastFocusedFieldId='fieldTitle'"
+              oninput="updateSlideProp('title', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Deskripsi Singkat</label>
+            <textarea id="fieldBody" rows="3"
+              onfocus="state.lastFocusedFieldId='fieldBody'"
+              oninput="updateSlideProp('body', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm leading-relaxed focus:outline-none focus:border-slate-900">${escapeHtml(slide.body || '')}</textarea>
+          </div>
+        `;
+      } else if (slide.layout === 'cta') {
+        fieldsHtml = `
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Label Atas (Eyebrow)</label>
+            <input type="text" id="fieldEyebrow" value="${escapeHtml(slide.eyebrow || 'PENUTUP')}"
+              onfocus="state.lastFocusedFieldId='fieldEyebrow'"
+              oninput="updateSlideProp('eyebrow', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Judul Penutup</label>
+            <textarea id="fieldTitle" rows="2"
+              onfocus="state.lastFocusedFieldId='fieldTitle'"
+              oninput="updateSlideProp('title', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900">${escapeHtml(slide.title || '')}</textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Pesan Ajakan Ringkas</label>
+            <textarea id="fieldBody" rows="3"
+              onfocus="state.lastFocusedFieldId='fieldBody'"
+              oninput="updateSlideProp('body', this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900">${escapeHtml(slide.body || '')}</textarea>
+          </div>
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Aksi 1</label>
+              <input type="text" value="${escapeHtml(slide.ctaSaveLabel || 'Simpan')}"
+                oninput="updateSlideProp('ctaSaveLabel', this.value)"
+                class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Aksi 2</label>
+              <input type="text" value="${escapeHtml(slide.ctaShareLabel || 'Bagikan')}"
+                oninput="updateSlideProp('ctaShareLabel', this.value)"
+                class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Aksi 3</label>
+              <input type="text" value="${escapeHtml(slide.ctaFollowLabel || 'Ikuti')}"
+                oninput="updateSlideProp('ctaFollowLabel', this.value)"
+                class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs" />
+            </div>
+          </div>
+        `;
+      }
+
+      fieldsBox.innerHTML = fieldsHtml;
+
+      // Update Scale & Alignment Toggle Styles
+      ['sm', 'md', 'lg'].forEach(sz => {
+        const btn = document.getElementById(`btnScale${sz.charAt(0).toUpperCase() + sz.slice(1)}`);
+        if (btn) {
+          btn.className = `py-1.5 rounded-lg text-xs font-medium transition-all ${
+            (slide.textScale || 'md') === sz ? 'bg-white text-slate-900 shadow-xs font-semibold' : 'text-slate-600'
+          }`;
+        }
+      });
+
+      ['left', 'center'].forEach(al => {
+        const btn = document.getElementById(`btnAlign${al.charAt(0).toUpperCase() + al.slice(1)}`);
+        if (btn) {
+          btn.className = `py-1.5 rounded-lg text-xs font-medium transition-all ${
+            (slide.align || 'left') === al ? 'bg-white text-slate-900 shadow-xs font-semibold' : 'text-slate-600'
+          }`;
+        }
+      });
+
+      // 3. Render Tab 2: Gaya & Warna Options
+      renderStyleOptions(slide);
+    }
+
+    function renderStyleOptions(slide) {
+      // Background Presets
+      document.getElementById('bgPresetList').innerHTML = BG_PRESETS.map(bg => {
+        const active = slide.bgId === bg.id;
+        return `
+          <button
+            type="button"
+            onclick="updateSlideProp('bgId', '${bg.id}')"
+            class="flex items-center justify-between px-3 py-2 rounded-xl border text-left transition-all ${
+              active ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900' : 'border-slate-200 bg-white hover:bg-slate-50'
+            }"
+          >
+            <div class="flex items-center gap-2.5">
+              <span class="w-5 h-5 rounded-full border border-slate-300 shrink-0" style="background-color: ${bg.hex};"></span>
+              <span class="text-xs font-semibold text-slate-800">${bg.name}</span>
+            </div>
+            <span class="text-[11px] font-mono text-slate-400">${bg.hex}</span>
+          </button>
+        `;
+      }).join('');
+
+      // Paper Textures
+      document.getElementById('texturePresetList').innerHTML = TEXTURE_PRESETS.map(tx => {
+        const active = slide.textureId === tx.id;
+        return `
+          <button
+            type="button"
+            onclick="updateSlideProp('textureId', '${tx.id}')"
+            class="px-3 py-2 rounded-xl border text-xs font-medium text-left transition-all ${
+              active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+            }"
+          >
+            ${tx.name}
+          </button>
+        `;
+      }).join('');
+
+      // Font Pairings
+      document.getElementById('fontPresetList').innerHTML = FONT_PRESETS.map(fp => {
+        const active = slide.fontId === fp.id;
+        return `
+          <button
+            type="button"
+            onclick="updateSlideProp('fontId', '${fp.id}')"
+            class="w-full px-3 py-2 rounded-xl border text-left transition-all flex items-center justify-between ${
+              active ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900' : 'border-slate-200 bg-white hover:bg-slate-50'
+            }"
+          >
+            <div>
+              <div class="text-xs font-bold text-slate-800">${fp.name}</div>
+              <div class="text-[11px] text-slate-500">${fp.desc}</div>
+            </div>
+            ${active ? '<span class="w-2 h-2 rounded-full bg-slate-900"></span>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      // Minimalist Text Accent Colors
+      document.getElementById('accentColorList').innerHTML = ACCENT_COLORS.map(ac => {
+        const active = slide.accentId === ac.id;
+        return `
+          <button
+            type="button"
+            onclick="updateSlideProp('accentId', '${ac.id}')"
+            class="px-3 py-2 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all ${
+              active ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900' : 'border-slate-200 bg-white hover:bg-slate-50'
+            }"
+          >
+            <span class="w-4 h-4 rounded-full shrink-0" style="background-color: ${ac.hex};"></span>
+            <span class="text-slate-800">${ac.name}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // 7. INTERAKSI & MUTASI STATE
+    function selectSlide(idx) {
+      if (idx < 0 || idx >= state.slides.length) return;
+      state.activeIndex = idx;
+      renderSlideList();
+      renderCanvasPreview();
+      renderInspector();
+    }
+
+    function updateSlideProp(key, value) {
+      const slide = state.slides[state.activeIndex];
+      if (!slide) return;
+      slide[key] = value;
+      renderCanvasPreview();
+      renderSlideList();
+
+      // Re-render inspector only when switching discrete buttons (not while typing in inputs)
+      if (['bgId', 'textureId', 'fontId', 'accentId', 'textScale', 'align', 'visualPosition'].includes(key)) {
+        renderInspector();
+      }
+    }
+
+    function updateVisualTransform(prop, val) {
+      const slide = state.slides[state.activeIndex];
+      if (!slide) return;
+      slide[prop] = Number(val);
+      const lbl = document.getElementById(
+        prop === 'imgZoom' ? 'lblImgZoom' : prop === 'imgX' ? 'lblImgX' : 'lblImgY'
+      );
+      if (lbl) lbl.textContent = `${val}%`;
+      renderCanvasPreview();
+    }
+
+    function handleVisualImageUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const slide = state.slides[state.activeIndex];
+        if (!slide) return;
+        slide.imageUrl = e.target.result;
+        slide.imgZoom = 100;
+        slide.imgX = 0;
+        slide.imgY = 0;
+        renderCanvasPreview();
+        renderInspector();
+        showToast('Gambar berhasil dimuat ke bingkai visual.');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function changeSlideLayout(newLayout) {
+      const slide = state.slides[state.activeIndex];
+      if (!slide || slide.layout === newLayout) return;
+
+      slide.layout = newLayout;
+      // Pastikan properti default tersedia bila berpindah tipe tata letak
+      if (newLayout === 'quote' && !slide.quoteText) {
+        slide.quoteText = slide.title || 'Kejernihan lahir dari keberanian menyederhanakan.';
+        slide.quoteAuthor = state.branding.handle || '@kakmuh';
+        slide.align = 'center';
+      } else if (newLayout === 'visual' && !slide.imageUrl) {
+        slide.imageUrl = DEFAULT_VISUAL_SVG;
+        slide.imgZoom = 100;
+        slide.imgX = 0;
+        slide.imgY = 0;
+      } else if (newLayout === 'content' && !slide.stepNumber) {
+        slide.stepNumber = padTwo(state.activeIndex + 1);
+      } else if (newLayout === 'cta') {
+        slide.align = 'center';
+      }
+
+      renderCanvasPreview();
+      renderSlideList();
+      renderInspector();
+    }
+
+    function wrapSelectionWithBold() {
+      const fieldId = state.lastFocusedFieldId || 'fieldTitle';
+      const el = document.getElementById(fieldId);
+      if (!el || typeof el.selectionStart !== 'number') {
+        showToast('Pilih teks di kolom input terlebih dahulu, lalu klik B.');
+        return;
+      }
+
+      const start = el.selectionStart;
+      const end = el.selectionEnd;
+      const val = el.value;
+      const selected = val.substring(start, end) || 'teks tebal';
+      const updated = val.substring(0, start) + `**${selected}**` + val.substring(end);
+
+      el.value = updated;
+      el.dispatchEvent(new Event('input'));
+      el.focus();
+      el.setSelectionRange(start + 2, start + 2 + selected.length);
+    }
+
+    function updateGlobalBranding(key, val) {
+      state.branding[key] = val;
+      if (key === 'handle') {
+        document.getElementById('headerHandleBadge').textContent = val || '@kakmuh';
+      }
+      renderCanvasPreview();
+    }
+
+    function applyStyleToAllSlides() {
+      const source = state.slides[state.activeIndex];
+      if (!source) return;
+
+      state.slides.forEach(s => {
+        s.bgId = source.bgId;
+        s.textureId = source.textureId;
+        s.fontId = source.fontId;
+        s.accentId = source.accentId;
+      });
+
+      renderCanvasPreview();
+      renderSlideList();
+      showToast('Gaya latar, tekstur, font & aksen diterapkan ke semua slide.');
+    }
+
+    // 8. MANAJEMEN SLIDE (TAMBAH, DUPLIKAT, GESER, HAPUS)
+    function openAddSlideModal() {
+      if (state.slides.length >= 20) {
+        showToast('Maksimal 20 slide dalam satu carousel.');
+        return;
+      }
+
+      const container = document.getElementById('addSlideTemplateOptions');
+      container.innerHTML = LAYOUT_TYPES.map(lt => `
+        <button
+          type="button"
+          onclick="addNewSlide('${lt.id}')"
+          class="p-3.5 rounded-xl border border-slate-200 hover:border-slate-900 hover:bg-slate-50 text-left transition-all space-y-1"
+        >
+          <div class="text-sm font-bold text-slate-900">${lt.label}</div>
+          <p class="text-xs text-slate-500 leading-relaxed">${lt.desc}</p>
+        </button>
+      `).join('');
+
+      const modal = document.getElementById('addSlideModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAddSlideModal() {
+      const modal = document.getElementById('addSlideModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function addNewSlide(layoutType) {
+      if (state.slides.length >= 20) return;
+
+      const current = state.slides[state.activeIndex] || state.slides[0];
+      const nextNum = padTwo(state.slides.length + 1);
+
+      const base = {
+        id: `slide-${Date.now()}`,
+        layout: layoutType,
+        bgId: current.bgId,
+        textureId: current.textureId,
+        fontId: current.fontId,
+        accentId: current.accentId,
+        textScale: 'md',
+        align: layoutType === 'quote' || layoutType === 'cta' ? 'center' : 'left'
+      };
+
+      if (layoutType === 'cover') {
+        Object.assign(base, {
+          eyebrow: 'TOPIK BARU',
+          title: 'Judul Utama yang **Jelas & Ringkas**',
+          subtitle: 'Tambahkan pengantar singkat untuk mengajak pembaca menggeser slide.',
+          swipeLabel: 'Geser →'
+        });
+      } else if (layoutType === 'content') {
+        Object.assign(base, {
+          stepNumber: nextNum,
+          title: 'Poin Pembahasan Berikutnya',
+          body: 'Tuliskan penjelasan utama secara terstruktur agar mudah dipindai dalam sekali baca.\n\nGunakan **teks tebal** pada gagasan inti.',
+          noteLabel: 'CATATAN',
+          noteText: 'Ringkasan singkat satu kalimat untuk memperkuat pemahaman pembaca.'
+        });
+      } else if (layoutType === 'quote') {
+        Object.assign(base, {
+          quoteText: 'Tuliskan kalimat kutipan atau refleksi singkat yang **bermakna** di tengah kanvas.',
+          quoteAuthor: state.branding.handle || '@kakmuh',
+          quoteRole: 'Catatan Refleksi'
+        });
+      } else if (layoutType === 'visual') {
+        Object.assign(base, {
+          visualPosition: 'top',
+          imageUrl: DEFAULT_VISUAL_SVG,
+          imgZoom: 100,
+          imgX: 0,
+          imgY: 0,
+          title: 'Ilustrasi atau Dokumentasi Visual',
+          body: 'Unggah foto dari perangkat Anda dan atur pembingkaian melalui slider Zoom serta posisi X/Y.'
+        });
+      } else if (layoutType === 'cta') {
+        Object.assign(base, {
+          eyebrow: 'PENUTUP',
+          title: 'Terima Kasih Telah **Membaca Sampai Akhir**',
+          body: 'Simpan unggahan ini jika bermanfaat dan bagikan ke lingkaran terdekat Anda.',
+          ctaSaveLabel: 'Simpan',
+          ctaSaveSub: 'Baca lagi nanti',
+          ctaShareLabel: 'Bagikan',
+          ctaShareSub: 'Kirim ke teman',
+          ctaFollowLabel: 'Ikuti',
+          ctaFollowSub: state.branding.handle || '@kakmuh'
+        });
+      }
+
+      const insertIdx = state.activeIndex + 1;
+      state.slides.splice(insertIdx, 0, base);
+      state.activeIndex = insertIdx;
+
+      closeAddSlideModal();
+      renderSlideList();
+      renderCanvasPreview();
+      renderInspector();
+      showToast(`Slide ${layoutType.toUpperCase()} ditambahkan.`);
+    }
+
+    function duplicateActiveSlide() {
+      if (state.slides.length >= 20) {
+        showToast('Maksimal 20 slide tercapai.');
+        return;
+      }
+      const clone = JSON.parse(JSON.stringify(state.slides[state.activeIndex]));
+      clone.id = `slide-${Date.now()}`;
+      const insertIdx = state.activeIndex + 1;
+      state.slides.splice(insertIdx, 0, clone);
+      state.activeIndex = insertIdx;
+
+      renderSlideList();
+      renderCanvasPreview();
+      renderInspector();
+      showToast('Slide berhasil diduplikat.');
+    }
+
+    function moveActiveSlide(dir) {
+      const targetIdx = state.activeIndex + dir;
+      if (targetIdx < 0 || targetIdx >= state.slides.length) return;
+
+      const temp = state.slides[state.activeIndex];
+      state.slides[state.activeIndex] = state.slides[targetIdx];
+      state.slides[targetIdx] = temp;
+      state.activeIndex = targetIdx;
+
+      renderSlideList();
+      renderCanvasPreview();
+      renderInspector();
+    }
+
+    function requestDeleteActiveSlide() {
+      if (state.slides.length <= 1) {
+        showToast('Minimal harus tersisa 1 slide.');
+        return;
+      }
+      const modal = document.getElementById('confirmDeleteModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+      const modal = document.getElementById('confirmDeleteModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function confirmDeleteSlide() {
+      closeDeleteModal();
+      if (state.slides.length <= 1) return;
+      state.slides.splice(state.activeIndex, 1);
+      if (state.activeIndex >= state.slides.length) {
+        state.activeIndex = state.slides.length - 1;
+      }
+      renderSlideList();
+      renderCanvasPreview();
+      renderInspector();
+      showToast('Slide telah dihapus.');
+    }
+
+    // 9. TOGGLE SAFE ZONE IG, MODE SEAMLESS & INSPECTOR TABS
+    function toggleSafeZone() {
+      state.showSafeZone = !state.showSafeZone;
+      const btn = document.getElementById('btnToggleSafeZone');
+      if (state.showSafeZone) {
+        btn.className =
+          'inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium border transition-all bg-blue-600 border-blue-600 text-white';
+      } else {
+        btn.className =
+          'inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium border transition-all bg-white border-slate-200 text-slate-600 hover:bg-slate-50';
+      }
+      renderCanvasPreview();
+    }
+
+    function toggleSeamless() {
+      state.showSeamless = !state.showSeamless;
+      const btn = document.getElementById('btnToggleSeamless');
+      if (state.showSeamless) {
+        btn.className =
+          'inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium border transition-all bg-slate-900 border-slate-900 text-white';
+      } else {
+        btn.className =
+          'inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium border transition-all bg-white border-slate-200 text-slate-600 hover:bg-slate-50';
+      }
+      renderCanvasPreview();
+    }
+
+    function switchInspectorTab(tab) {
+      state.activeTab = tab;
+      const tabs = ['konten', 'gaya', 'ekspor'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const panel = document.getElementById(`tabPanel${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (t === tab) {
+          btn.className =
+            'py-2 px-2 rounded-xl text-xs font-semibold transition-all bg-white text-slate-900 shadow-sm border border-slate-200/80';
+          panel.classList.remove('hidden');
+        } else {
+          btn.className =
+            'py-2 px-2 rounded-xl text-xs font-medium transition-all text-slate-600 hover:text-slate-900';
+          panel.classList.add('hidden');
+        }
+      });
+    }
+
+    // 10. HIGH-RESOLUTION EXPORT ENGINE (1080x1440 px) & IG POSTING
+    function showProgressOverlay(title, subtitle = 'Menyiapkan kanvas presisi 1080×1440 px') {
+      const el = document.getElementById('exportProgressOverlay');
+      document.getElementById('exportProgressTitle').textContent = title;
+      document.getElementById('exportProgressSubtitle').textContent = subtitle;
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+    }
+
+    function hideProgressOverlay() {
+      const el = document.getElementById('exportProgressOverlay');
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    }
+
+    function waitMs(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function getCleanFilePrefix() {
+      const raw = (state.branding.handle || 'kakmuh').replace(/^@+/, '').replace(/[^a-zA-Z0-9_-]/g, '');
+      return raw || 'kakmuh';
+    }
+
+    /**
+     * Merender satu slide pada ukuran asli 1080x1440 px ke Data URL PNG.
+     * Otomatis menunggu document.fonts.ready dan menyembunyikan garis Safe Zone.
+     */
+    async function renderSlideToDataUrl(index) {
+      await document.fonts.ready;
+
+      const staging = document.getElementById('exportStagingContainer');
+      const slide = state.slides[index];
+      staging.innerHTML = buildSlideArtboardHtml(slide, index, state.slides.length, true);
+
+      const artboardNode = staging.firstElementChild;
+      // Beri jeda singkat 1 frame agar DOM & gambar inline siap sempurna
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+      const dataUrl = await window.htmlToImage.toPng(artboardNode, {
+        width: 1080,
+        height: 1440,
+        pixelRatio: 1,
+        cacheBust: true,
+        style: {
+          transform: 'none',
+          margin: '0'
+        }
+      });
+
+      staging.innerHTML = '';
+      return dataUrl;
+    }
+
+    function triggerDownloadDataUrl(dataUrl, filename) {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function triggerDownloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    // Tombol "Save PNG": Unduh slide aktif dalam format PNG 1080x1440 px
+    async function exportSinglePng() {
+      try {
+        const idx = state.activeIndex;
+        const prefix = getCleanFilePrefix();
+        const filename = `${prefix}-slide-${padTwo(idx + 1)}.png`;
+
+        showProgressOverlay(`Merender Slide ${idx + 1}/${state.slides.length}...`);
+        const dataUrl = await renderSlideToDataUrl(idx);
+        triggerDownloadDataUrl(dataUrl, filename);
+        hideProgressOverlay();
+        showToast(`Berhasil mengunduh ${filename} (1080×1440 px).`);
+      } catch (err) {
+        console.error('Export Single PNG error:', err);
+        hideProgressOverlay();
+        showToast('Gagal merender PNG. Silakan coba kembali.');
+      }
+    }
+
+    // Tombol "Save All PNG": Render & unduh seluruh slide satu per satu berurutan dengan jeda 300ms
+    async function exportAllPngSequential() {
+      try {
+        const total = state.slides.length;
+        const prefix = getCleanFilePrefix();
+
+        for (let i = 0; i < total; i++) {
+          showProgressOverlay(
+            `Merender Slide ${i + 1}/${total}...`,
+            `Mengunduh ${prefix}-slide-${padTwo(i + 1)}.png`
+          );
+          const dataUrl = await renderSlideToDataUrl(i);
+          triggerDownloadDataUrl(dataUrl, `${prefix}-slide-${padTwo(i + 1)}.png`);
+
+          if (i < total - 1) {
+            await waitMs(300);
+          }
+        }
+
+        hideProgressOverlay();
+        showToast(`Semua ${total} slide PNG (1080×1440 px) selesai diunduh.`);
+      } catch (err) {
+        console.error('Export All PNG error:', err);
+        hideProgressOverlay();
+        showToast('Terjadi kendala saat mengunduh seluruh PNG.');
+      }
+    }
+
+    // Tombol "Save All ZIP": Unduh seluruh slide dalam arsip kakmuh-carousel.zip
+    async function exportAllZip() {
+      try {
+        if (typeof window.JSZip === 'undefined') {
+          showToast('Library JSZip belum siap. Periksa koneksi internet.');
+          return;
+        }
+
+        const zip = new window.JSZip();
+        const total = state.slides.length;
+        const prefix = getCleanFilePrefix();
+
+        for (let i = 0; i < total; i++) {
+          showProgressOverlay(
+            `Merender Slide ${i + 1}/${total}...`,
+            'Menyusun arsip ZIP resolusi tinggi'
+          );
+          const dataUrl = await renderSlideToDataUrl(i);
+          const base64Data = dataUrl.split(',')[1];
+          zip.file(`${prefix}-slide-${padTwo(i + 1)}.png`, base64Data, { base64: true });
+        }
+
+        showProgressOverlay('Mengemas File ZIP...', `Membuat ${prefix}-carousel.zip`);
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        triggerDownloadBlob(zipBlob, `${prefix}-carousel.zip`);
+
+        hideProgressOverlay();
+        showToast(`Arsip ${prefix}-carousel.zip berhasil diunduh.`);
+      } catch (err) {
+        console.error('Export ZIP error:', err);
+        hideProgressOverlay();
+        showToast('Gagal membuat arsip ZIP.');
+      }
+    }
+
+    // 11. CAPTION & POSTING KE INSTAGRAM
+    function syncCaptionText(value) {
+      state.caption = value;
+      const inlineEl = document.getElementById('inlineCaptionTextarea');
+      const modalEl = document.getElementById('modalCaptionTextarea');
+      if (inlineEl && inlineEl.value !== value) inlineEl.value = value;
+      if (modalEl && modalEl.value !== value) modalEl.value = value;
+    }
+
+    function generateCaptionFromSlides() {
+      const handle = state.branding.handle || '@kakmuh';
+      const cover = state.slides[0];
+      const coverTitle = (cover && cover.title ? cover.title : 'Catatan Singkat').replace(/\*\*/g, '');
+
+      const points = state.slides
+        .slice(1)
+        .map((s, idx) => {
+          const heading = (s.title || s.quoteText || '').replace(/\*\*/g, '').trim();
+          if (!heading) return null;
+          return `${padTwo(idx + 1)}. ${heading}`;
+        })
+        .filter(Boolean)
+        .join('\n');
+
+      const generated = `${coverTitle}\n\nRingkasan isi slide:\n${points}\n\nSimpan catatan ini agar mudah dibaca kembali, dan bagikan ke teman yang membutuhkan.\n\nIkuti ${handle} untuk refleksi dan catatan minimalis lainnya.\n\n#${getCleanFilePrefix()} #catatanminimalis #refleksi #edukasi #carouselinstagram`;
+
+      syncCaptionText(generated);
+      showToast('Caption disusun otomatis dari isi slide.');
+    }
+
+    function copyCaptionToClipboard() {
+      const text = state.caption || '';
+      const tempArea = document.createElement('textarea');
+      tempArea.value = text;
+      tempArea.style.position = 'fixed';
+      tempArea.style.left = '-9999px';
+      document.body.appendChild(tempArea);
+      tempArea.select();
+
+      try {
+        document.execCommand('copy');
+        showToast('Caption berhasil disalin ke clipboard.');
+      } catch (err) {
+        console.error('Copy failed:', err);
+        showToast('Gagal menyalin otomatis. Silakan salin manual dari kotak teks.');
+      } finally {
+        document.body.removeChild(tempArea);
+      }
+    }
+
+    function openCaptionModal() {
+      document.getElementById('modalCaptionTextarea').value = state.caption;
+      const modal = document.getElementById('captionModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCaptionModal() {
+      const modal = document.getElementById('captionModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    /**
+     * Posting ke IG:
+     * 1. Salin caption ke clipboard.
+     * 2. Render seluruh slide PNG 1080x1440 px menjadi File[].
+     * 3. Jika Web Share API mendukung berbagi files (umum di mobile iOS/Android), panggil navigator.share().
+     * 4. Fallback: Unduh semua PNG secara berurutan dan buka Instagram.
+     */
+    async function postToInstagram() {
+      copyCaptionToClipboard();
+      closeCaptionModal();
+
+      const total = state.slides.length;
+      const prefix = getCleanFilePrefix();
+
+      try {
+        const pngFiles = [];
+        for (let i = 0; i < total; i++) {
+          showProgressOverlay(
+            `Menyiapkan Slide ${i + 1}/${total} untuk IG...`,
+            'Merender resolusi penuh 1080×1440 px'
+          );
+          const dataUrl = await renderSlideToDataUrl(i);
+          const res = await fetch(dataUrl);
+          const blob = await res.blob();
+          const file = new File([blob], `${prefix}-slide-${padTwo(i + 1)}.png`, { type: 'image/png' });
+          pngFiles.push(file);
+        }
+
+        hideProgressOverlay();
+
+        // Cek dukungan Web Share API dengan Files (Mobile)
+        if (navigator.canShare && navigator.canShare({ files: pngFiles }) && navigator.share) {
+          await navigator.share({
+            files: pngFiles,
+            title: `IG Carousel — ${state.branding.handle || '@kakmuh'}`,
+            text: state.caption
+          });
+          showToast('Menu berbagi dibuka. Pilih Instagram dan tempel (Paste) caption.');
+          return;
+        }
+
+        // Fallback Desktop / Browser tanpa file-share:
+        // Unduh semua PNG berurutan, caption sudah tersalin, lalu buka Instagram
+        for (let i = 0; i < pngFiles.length; i++) {
+          triggerDownloadBlob(pngFiles[i], pngFiles[i].name);
+          if (i < pngFiles.length - 1) {
+            await waitMs(300);
+          }
+        }
+
+        showToast('Semua PNG diunduh & caption disalin! Membuka Instagram...');
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        setTimeout(() => {
+          window.open(isMobile ? 'instagram://library' : 'https://www.instagram.com/', '_blank', 'noopener');
+        }, 600);
+      } catch (err) {
+        hideProgressOverlay();
+        if (err && err.name === 'AbortError') {
+          showToast('Berbagi dibatalkan.');
+        } else {
+          console.error('Posting ke IG error:', err);
+          showToast('Silakan unggah file PNG yang terunduh dan tempel caption di Instagram.');
+        }
+      }
+    }
+
+    // 12. TOAST NOTIFICATION HELPER
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className =
+        'pointer-events-auto bg-slate-900 text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg border border-slate-700/80 flex items-center gap-2.5 transition-all duration-300';
+      toast.innerHTML = `
+        <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+        <span class="leading-snug">${escapeHtml(message)}</span>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(6px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3400);
+    }
+
+    // 13. NAVIGASI KEYBOARD (ArrowLeft / ArrowRight tanpa auto-slide)
+    document.addEventListener('keydown', e => {
+      const tag = document.activeElement && document.activeElement.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        selectSlide(state.activeIndex - 1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        selectSlide(state.activeIndex + 1);
+      }
+    });
+
+    // 14. INISIALISASI APLIKASI SAAT DOM SIAP
+    window.addEventListener('DOMContentLoaded', () => {
+      // Sinkronkan nilai awal caption
+      syncCaptionText(state.caption);
+
+      // Render awal UI
+      renderSlideList();
+      renderCanvasPreview();
+      renderInspector();
+
+      // Pasang ResizeObserver pada area pratinjau tengah agar skala kanvas selalu presisi & responsif
+      const viewport = document.getElementById('previewViewport');
+      if (viewport && typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => {
+          updateCanvasPreviewScale();
+        });
+        ro.observe(viewport);
+      } else {
+        window.addEventListener('resize', updateCanvasPreviewScale);
+      }
+    });
+  </script>
+</body>
+</html>
